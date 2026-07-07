@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Terraform
+**/.terraform/
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+
+# Build artifacts
+function.zip
+**/function.zip
+lambda/*.zip
+lambda/invoke-response.json
+
+# Secrets / local config
+.env
+infra/rendered/
+
+# Nested git clone (staging demo)
+day46-cicd-data-pipelines/demo/github-repo-staging/data-pipeline-cicd-demo/.git/
+
+# OS
+.DS_Store

@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+    commands:
+      - pip install --upgrade pip
+      - pip install -r requirements-dev.txt
+
+  pre_build:
+    commands:
+      - echo "Running CI checks inside CodePipeline..."
+      - flake8 lambda tests --max-line-length=100 --exclude=__pycache__
+      - pytest tests/ -v
+
+  build:
+    commands:
+      - echo "Packaging Lambda deployment artifact..."
+      - cd lambda/etl_customer
+      - zip -r ../../function.zip .
+      - cd ../..
+
+artifacts:
+  files:
+    - function.zip
+  name: etl-customer-artifact

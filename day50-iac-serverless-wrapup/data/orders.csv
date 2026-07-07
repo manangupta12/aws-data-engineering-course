@@ -1,0 +1,5 @@
+order_id,customer_id,amount,order_date,currency
+ORD-001,C001,49.99,2026-01-15,USD
+ORD-002,C002,120.50,2026-01-16,usd
+ORD-003,C001, 15.00 ,2026-01-17,USD
+ORD-004,C003,999.00,2026-01-18,EUR

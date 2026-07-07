@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadCustomerCsvFromS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::testingrawdata",
+        "arn:aws:s3:::testingrawdata/data-etl-test1/*"
+      ]
+    },
+    {
+      "Sid": "WriteRecordsToDynamoDb",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DescribeTable"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-north-1:211125491569:table/etl-test"
+    },
+    {
+      "Sid": "LambdaBasicExecution",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:eu-north-1:211125491569:*"
+    }
+  ]
+}

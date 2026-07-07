@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Day 50 demo stack — S3 buckets, Secrets Manager, and Lambda ETL.
+  CloudFormation alternative to infra/terraform/ (same concepts, different tool).
+
+Parameters:
+  ProjectPrefix:
+    Type: String
+    Description: Unique prefix for resource names (lowercase, no spaces)
+    AllowedPattern: "[a-z0-9-]+"
+    ConstraintDescription: Use lowercase letters, numbers, and hyphens only
+
+Resources:
+  RawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-orders-raw"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  ProcessedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectPrefix}-orders-processed"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${ProjectPrefix}/rds/orders-db"
+      Description: RDS credentials for orders ETL (Day 50 demo)
+      GenerateSecretString:
+        SecretStringTemplate: '{"username":"etl_user","engine":"postgres","port":5432,"dbname":"orders"}'
+        GenerateStringKey: password
+        PasswordLength: 20
+        ExcludeCharacters: '"@/\'
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectPrefix}-etl-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EtlOrdersPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:*:*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt RawBucket.Arn
+                  - !Sub "${RawBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub "${ProcessedBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref DbSecret
+
+  EtlOrdersFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectPrefix}-etl-orders"
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          RAW_BUCKET: !Ref RawBucket
+          PROCESSED_BUCKET: !Ref ProcessedBucket
+          S3_KEY: incoming/orders.csv
+          DB_SECRET_ARN: !Ref DbSecret
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {
+                  "statusCode": 200,
+                  "body": "Replace with deployed zip from CI/CD pipeline"
+              }
+
+Outputs:
+  RawBucketName:
+    Description: Upload CSV files here under incoming/
+    Value: !Ref RawBucket
+
+  ProcessedBucketName:
+    Description: Transformed JSON appears here
+    Value: !Ref ProcessedBucket
+
+  LambdaFunctionName:
+    Description: Lambda function created by CloudFormation
+    Value: !Ref EtlOrdersFunction
+
+  DbSecretArn:
+    Description: Secrets Manager ARN for database credentials
+    Value: !Ref DbSecret
