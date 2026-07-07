@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
-  Day 50 demo stack — S3 buckets, Secrets Manager, and Lambda ETL.
-  CloudFormation alternative to infra/terraform/ (same concepts, different tool).
+  Day 50 ETL stack — S3 buckets, Secrets Manager, Lambda ETL with S3 event trigger.
+  CloudFormation equivalent of infra/terraform/. Deploy with scripts/deploy-cloudformation.sh.
 
 Parameters:
   ProjectPrefix:
@@ -9,6 +9,20 @@ Parameters:
     Description: Unique prefix for resource names (lowercase, no spaces)
     AllowedPattern: "[a-z0-9-]+"
     ConstraintDescription: Use lowercase letters, numbers, and hyphens only
+
+  LambdaArtifactBucket:
+    Type: String
+    Description: S3 bucket that contains the packaged Lambda zip (created by deploy script)
+
+  LambdaArtifactKey:
+    Type: String
+    Default: lambda/etl-orders/function.zip
+    Description: S3 key for the Lambda deployment package
+
+  DefaultS3Key:
+    Type: String
+    Default: incoming/orders.csv
+    Description: Default CSV key when the Lambda event does not include a key
 
 Resources:
   RawBucket:
@@ -39,10 +53,16 @@ Resources:
       Name: !Sub "${ProjectPrefix}/rds/orders-db"
       Description: RDS credentials for orders ETL (Day 50 demo)
       GenerateSecretString:
-        SecretStringTemplate: '{"username":"etl_user","engine":"postgres","port":5432,"dbname":"orders"}'
+        SecretStringTemplate: '{"username":"etl_user","engine":"postgres","port":5432,"dbname":"orders","host":"localhost"}'
         GenerateStringKey: password
         PasswordLength: 20
         ExcludeCharacters: '"@/\'
+
+  EtlOrdersLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectPrefix}-etl-orders"
+      RetentionInDays: 7
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -65,7 +85,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectPrefix}-etl-orders:*"
               - Effect: Allow
                 Action:
                   - s3:GetObject
@@ -84,6 +104,8 @@ Resources:
 
   EtlOrdersFunction:
     Type: AWS::Lambda::Function
+    DependsOn:
+      - EtlOrdersLogGroup
     Properties:
       FunctionName: !Sub "${ProjectPrefix}-etl-orders"
       Runtime: python3.12
@@ -93,31 +115,60 @@ Resources:
       MemorySize: 256
       Environment:
         Variables:
-          RAW_BUCKET: !Ref RawBucket
-          PROCESSED_BUCKET: !Ref ProcessedBucket
-          S3_KEY: incoming/orders.csv
+          RAW_BUCKET: !Sub "${ProjectPrefix}-orders-raw"
+          PROCESSED_BUCKET: !Sub "${ProjectPrefix}-orders-processed"
+          S3_KEY: !Ref DefaultS3Key
           DB_SECRET_ARN: !Ref DbSecret
       Code:
-        ZipFile: |
-          def lambda_handler(event, context):
-              return {
-                  "statusCode": 200,
-                  "body": "Replace with deployed zip from CI/CD pipeline"
-              }
+        S3Bucket: !Ref LambdaArtifactBucket
+        S3Key: !Ref LambdaArtifactKey
+
+  RawBucketInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EtlOrdersFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt RawBucket.Arn
+      SourceAccount: !Ref AWS::AccountId
 
 Outputs:
+  StackName:
+    Description: CloudFormation stack name
+    Value: !Ref AWS::StackName
+
   RawBucketName:
     Description: Upload CSV files here under incoming/
     Value: !Ref RawBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-RawBucketName"
 
   ProcessedBucketName:
     Description: Transformed JSON appears here
     Value: !Ref ProcessedBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ProcessedBucketName"
 
   LambdaFunctionName:
     Description: Lambda function created by CloudFormation
     Value: !Ref EtlOrdersFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionName"
+
+  LambdaFunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt EtlOrdersFunction.Arn
 
   DbSecretArn:
     Description: Secrets Manager ARN for database credentials
     Value: !Ref DbSecret
+    Export:
+      Name: !Sub "${AWS::StackName}-DbSecretArn"
+
+  LambdaArtifactBucket:
+    Description: Bucket used for the Lambda deployment package
+    Value: !Ref LambdaArtifactBucket
+
+  LambdaArtifactKey:
+    Description: S3 key for the Lambda deployment package
+    Value: !Ref LambdaArtifactKey

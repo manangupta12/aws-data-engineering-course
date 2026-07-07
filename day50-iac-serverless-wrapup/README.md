@@ -20,7 +20,8 @@ pytest tests/ -v
 
 ## Student walkthrough
 
-- **IaC step-by-step (start here):** [IAC-STUDENT-GUIDE.md](IAC-STUDENT-GUIDE.md)
+- **Terraform step-by-step:** [IAC-STUDENT-GUIDE.md](IAC-STUDENT-GUIDE.md)
+- **CloudFormation step-by-step:** [CLOUDFORMATION-STUDENT-GUIDE.md](CLOUDFORMATION-STUDENT-GUIDE.md)
 - **Full Day 50 lab:** [WALKTHROUGH.md](WALKTHROUGH.md)
 
 ## Project layout

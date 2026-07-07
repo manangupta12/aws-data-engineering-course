@@ -244,53 +244,21 @@ Type `yes`. Confirms all lab resources are removed.
 
 ## Part B — CloudFormation (AWS-native path)
 
-Use this if your team standardizes on CloudFormation instead of Terraform.
+**Full step-by-step guide:** [CLOUDFORMATION-STUDENT-GUIDE.md](CLOUDFORMATION-STUDENT-GUIDE.md)
 
-### Step 1: Deploy the stack
-
-From project root:
+Quick deploy:
 
 ```bash
-aws cloudformation deploy \
-  --template-file infra/cloudformation/etl-stack.yaml \
-  --stack-name day50-etl-demo \
-  --parameter-overrides ProjectPrefix=YOUR-UNIQUE-PREFIX \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --region us-east-1
+chmod +x scripts/deploy-cloudformation.sh
+./scripts/deploy-cloudformation.sh YOUR-UNIQUE-PREFIX day50-etl-demo us-east-1
 ```
 
-Replace `YOUR-UNIQUE-PREFIX` with the same prefix you used for Terraform (lowercase, hyphens only).
+The script packages Lambda code, uploads to S3, deploys `infra/cloudformation/etl-stack.yaml`, and configures the S3 trigger.
 
----
-
-### Step 2: Read stack outputs
+Clean up:
 
 ```bash
-aws cloudformation describe-stacks \
-  --stack-name day50-etl-demo \
-  --query "Stacks[0].Outputs" \
-  --output table
-```
-
-Note `RawBucketName`, `ProcessedBucketName`, `LambdaFunctionName`, `DbSecretArn`.
-
----
-
-### Step 3: Upload test file
-
-```bash
-aws s3 cp data/orders.csv s3://YOUR-RAW-BUCKET/incoming/orders.csv
-```
-
-> CloudFormation template ships placeholder Lambda code. For production-like ETL, deploy real code via CI/CD (`buildspec.yml`) or update the function zip manually after running tests locally.
-
----
-
-### Step 4: Delete the stack
-
-```bash
-aws cloudformation delete-stack --stack-name day50-etl-demo
-aws cloudformation wait stack-delete-complete --stack-name day50-etl-demo
+./scripts/destroy-cloudformation.sh day50-etl-demo us-east-1 YOUR-UNIQUE-PREFIX
 ```
 
 ---
