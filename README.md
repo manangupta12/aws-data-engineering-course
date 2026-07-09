@@ -4,6 +4,7 @@ Hands-on labs for the AWS data engineering curriculum.
 
 | Day | Topic | Folder | Student guide |
 |-----|-------|--------|---------------|
+| — | Local Hadoop (Docker) | [`hadoop-local-docker/`](hadoop-local-docker/) | [Hadoop student guide](hadoop-local-docker/HADOOP-STUDENT-GUIDE.md) |
 | 46 | CI/CD for Data Pipelines | [`day46-cicd-data-pipelines/`](day46-cicd-data-pipelines/) | [Setup walkthrough](day46-cicd-data-pipelines/demo/github-repo-staging/data-pipeline-cicd-demo/SETUP-WALKTHROUGH.md) |
 | 50 | Infrastructure as Code & Serverless | [`day50-iac-serverless-wrapup/`](day50-iac-serverless-wrapup/) | [Terraform guide](day50-iac-serverless-wrapup/IAC-STUDENT-GUIDE.md) · [CloudFormation guide](day50-iac-serverless-wrapup/CLOUDFORMATION-STUDENT-GUIDE.md) |
 

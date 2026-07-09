@@ -1,0 +1,4 @@
+hello hadoop
+hello hdfs
+hello mapreduce
+local docker cluster
