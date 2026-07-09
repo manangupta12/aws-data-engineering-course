@@ -60,16 +60,28 @@ flowchart TB
 
 ---
 
+## Choose your setup path
+
+| OS | Recommended terminal | Start script |
+|----|----------------------|--------------|
+| macOS | Terminal (zsh/bash) | `./scripts/start.sh` |
+| Linux | Terminal (bash) | `./scripts/start.sh` |
+| Windows | **PowerShell** | `.\scripts\start.ps1` |
+| Windows (alt) | **Git Bash** or **WSL 2 Ubuntu** | `./scripts/start.sh` |
+
+> **Windows students:** Use **PowerShell** for `.ps1` scripts, or **Git Bash / WSL** for `.sh` scripts. Do not use old `cmd.exe` — it cannot run these scripts.
+
 ## Before you start — checklist
 
 | Item | Your value / status |
 |------|---------------------|
 | OS | Mac / Windows / Linux |
-| Docker Desktop installed? | ☐ |
+| Docker installed and running? | ☐ |
 | `docker --version` works? | ☐ |
 | `docker compose version` works? | ☐ |
 | At least 6 GB free RAM | ☐ |
 | Required ports free (see below) | ☐ |
+| In project folder `hadoop-local-docker/` | ☐ |
 
 ### Required ports
 
@@ -116,34 +128,44 @@ docker --version
 docker compose version
 ```
 
-### Linux (Ubuntu / Debian example)
+### Linux
+
+Use **Docker Engine + Compose plugin** (most common on Linux) or **Docker Desktop for Linux**.
+
+1. Follow the official install guide for your distro:
+   - Ubuntu: https://docs.docker.com/engine/install/ubuntu/
+   - Other distros: https://docs.docker.com/engine/install/
+2. Add your user to the `docker` group (avoids needing `sudo` every time):
 
 ```bash
-# Follow official docs: https://docs.docker.com/engine/install/
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 sudo usermod -aG docker $USER
-# Log out and back in, then:
+newgrp docker
+```
+
+3. Verify:
+
+```bash
 docker --version
 docker compose version
+docker run hello-world
 ```
 
 ---
 
 ## Step 2 — Get the project files
 
-Clone the course repo (or open it if you already have it):
+Clone the course repo:
 
 ```bash
-git clone <your-repo-url>
-cd AWS/hadoop-local-docker
+git clone https://github.com/manangupta12/aws-data-engineering-course.git
+cd aws-data-engineering-course/hadoop-local-docker
 ```
 
-On Windows (PowerShell):
+Windows (PowerShell):
 
 ```powershell
-git clone <your-repo-url>
-cd AWS\hadoop-local-docker
+git clone https://github.com/manangupta12/aws-data-engineering-course.git
+cd aws-data-engineering-course\hadoop-local-docker
 ```
 
 You should see:
@@ -153,15 +175,20 @@ hadoop-local-docker/
 ├── docker-compose.yml      # Cluster definition
 ├── data/sample.txt         # Sample file for labs
 ├── scripts/
-│   ├── start.sh            # Mac / Linux / Git Bash
+│   ├── lib.sh / lib.ps1    # Shared helpers
+│   ├── start.sh            # Mac / Linux / Git Bash / WSL
 │   ├── stop.sh
 │   ├── smoke-test.sh
+│   ├── verify.sh
 │   ├── start.ps1           # Windows PowerShell
 │   ├── stop.ps1
-│   └── smoke-test.ps1
+│   ├── smoke-test.ps1
+│   └── verify.ps1
 ├── HADOOP-STUDENT-GUIDE.md # This file
 └── README.md
 ```
+
+> All commands below assume your current directory is `hadoop-local-docker/`.
 
 ---
 
@@ -178,9 +205,19 @@ First run downloads the Hadoop image (~1.2 GB). This can take 5–15 minutes dep
 
 ### Windows (PowerShell)
 
+If PowerShell blocks scripts, run once:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Then start the cluster:
+
 ```powershell
 .\scripts\start.ps1
 ```
+
+The start script pulls the image, starts containers, and waits until all 7 services are healthy (may take 2–3 minutes after the image download).
 
 ### Manual start (all platforms)
 
@@ -195,7 +232,19 @@ docker compose up -d
 
 ## Step 4 — Verify the cluster is healthy
 
-Wait 1–2 minutes after start, then check:
+Run the verify script:
+
+```bash
+./scripts/verify.sh
+```
+
+Windows:
+
+```powershell
+.\scripts\verify.ps1
+```
+
+Or check manually:
 
 ```bash
 docker compose ps
@@ -344,12 +393,20 @@ docker exec namenode hdfs dfs -cat /user/student/output/wordcount/part-r-00000
 
 ### Grep example
 
-```bash
-docker exec namenode bash -lc \
-  'hadoop jar $(ls $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar | head -1) grep /user/root/input/sample.txt /user/student/output/grep "hello.*"'
-```
+Mac / Linux / Git Bash / WSL:
 
 ```bash
+docker exec namenode hdfs dfs -rm -r -f /user/student/output/grep 2>/dev/null || true
+docker exec namenode bash -lc \
+  'hadoop jar $(ls $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar | head -1) grep /user/root/input/sample.txt /user/student/output/grep "hello.*"'
+docker exec namenode hdfs dfs -cat /user/student/output/grep/part-m-00000
+```
+
+Windows (PowerShell):
+
+```powershell
+docker exec namenode hdfs dfs -rm -r -f /user/student/output/grep
+docker exec namenode bash -lc "hadoop jar `$(ls `$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar | head -1) grep /user/root/input/sample.txt /user/student/output/grep `"hello.*`""
 docker exec namenode hdfs dfs -cat /user/student/output/grep/part-m-00000
 ```
 
@@ -475,9 +532,32 @@ This is **normal** in Docker. Jobs still run correctly.
 
 ### Windows: scripts won't run
 
-- Use **PowerShell** for `.ps1` scripts
-- Or use **Git Bash** for `.sh` scripts (comes with Git for Windows)
-- Or run `docker compose` commands directly (see Step 3 manual start)
+**PowerShell blocked (.ps1):**
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Then retry `.\scripts\start.ps1`.
+
+**Other options:**
+
+- Use **Git Bash** or **WSL 2** for `.sh` scripts
+- Run `docker compose` commands directly (see Step 3 manual start)
+- Ensure **Docker Desktop** is running and WSL integration is enabled (Settings → Resources → WSL integration)
+
+### Linux: permission denied on `docker`
+
+**Symptom:** `permission denied while trying to connect to the Docker daemon socket`
+
+**Fix:**
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+Or log out and back in, then retry.
 
 ### Out of memory
 
@@ -492,6 +572,7 @@ This is **normal** in Docker. Jobs still run correctly.
 | Task | Command |
 |------|---------|
 | Start | `./scripts/start.sh` or `.\scripts\start.ps1` |
+| Verify | `./scripts/verify.sh` or `.\scripts\verify.ps1` |
 | Status | `docker compose ps` |
 | Smoke test | `./scripts/smoke-test.sh` or `.\scripts\smoke-test.ps1` |
 | HDFS shell | `docker exec -it namenode bash` |

@@ -11,19 +11,22 @@ Step-by-step setup for Mac, Windows, and Linux — prerequisites, start, verify,
 ## Quick start
 
 ```bash
-cd hadoop-local-docker
-chmod +x scripts/*.sh      # Mac / Linux only
+git clone https://github.com/manangupta12/aws-data-engineering-course.git
+cd aws-data-engineering-course/hadoop-local-docker
+chmod +x scripts/*.sh      # Mac / Linux / WSL only
 ./scripts/start.sh
-docker compose ps          # all 7 containers should be (healthy)
+./scripts/verify.sh
 ./scripts/smoke-test.sh
 ```
 
 Windows (PowerShell):
 
 ```powershell
-cd hadoop-local-docker
+git clone https://github.com/manangupta12/aws-data-engineering-course.git
+cd aws-data-engineering-course\hadoop-local-docker
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned   # first time only
 .\scripts\start.ps1
-docker compose ps
+.\scripts\verify.ps1
 .\scripts\smoke-test.ps1
 ```
 
@@ -55,3 +58,5 @@ Image: [neshkeev/hadoop:3.3.6-jdk-11](https://hub.docker.com/r/neshkeev/hadoop) 
 ./scripts/stop.sh           # stop, keep data
 docker compose down -v      # stop + wipe HDFS
 ```
+
+Windows: `.\scripts\stop.ps1`
