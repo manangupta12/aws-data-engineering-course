@@ -1,0 +1,16 @@
+order_id,customer_id,product_id,product_name,category,quantity,unit_price,order_date,status,city
+10001,C1001,P501,Wireless Headphones,Electronics,1,79.99,2026-01-05,Delivered,Mumbai
+10002,C1002,P302,Cotton T-Shirt,Apparel,2,19.99,2026-01-05,Delivered,Delhi
+10003,C1003,P501,Wireless Headphones,Electronics,1,79.99,2026-01-06,Shipped,Bangalore
+10004,C1001,P210,Running Shoes,Footwear,1,129.99,2026-01-06,Delivered,Mumbai
+10005,C1004,P880,Blender,Home,1,49.99,2026-01-07,Delivered,Chennai
+10006,C1005,P302,Cotton T-Shirt,Apparel,3,19.99,2026-01-07,Cancelled,Pune
+10007,C1002,P640,Laptop Stand,Electronics,1,34.99,2026-01-08,Delivered,Delhi
+10008,C1006,P210,Running Shoes,Footwear,1,129.99,2026-01-08,Returned,Hyderabad
+10009,C1003,P990,Gift Card,Services,1,100.00,2026-01-09,Delivered,Bangalore
+10010,C1007,P501,Wireless Headphones,Electronics,2,79.99,2026-01-09,Delivered,Kolkata
+10011,C1008,P440,Face Moisturizer,Beauty,1,24.99,2026-01-10,Shipped,Jaipur
+10012,C1004,P210,Running Shoes,Footwear,1,129.99,2026-01-10,Delivered,Chennai
+10013,C1009,P302,Cotton T-Shirt,Apparel,1,19.99,2026-01-11,Delivered,Ahmedabad
+10014,C1005,P880,Blender,Home,1,49.99,2026-01-11,Delivered,Pune
+10015,C1010,P640,Laptop Stand,Electronics,1,34.99,2026-01-12,Delivered,Lucknow
