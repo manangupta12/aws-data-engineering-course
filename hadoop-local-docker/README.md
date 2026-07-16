@@ -1,18 +1,18 @@
 # Local Hadoop Cluster (Docker)
 
-Multi-node **Hadoop 3.3.6** cluster for local development and student labs.
+Multi-node **Hadoop 3.3.6** cluster for local development and labs.
 
-## Student guide
+## Setup guide
 
 **Start here:** [HADOOP-STUDENT-GUIDE.md](./HADOOP-STUDENT-GUIDE.md)
 
 Step-by-step setup for Mac, Windows, and Linux — prerequisites, start, verify, HDFS commands, MapReduce exercises, troubleshooting.
 
-## Class notebook (instructors)
+## Hands-on guide (Jupyter)
 
-**1-hour teaching notebook:** [Hadoop-Local-Cluster-Class.ipynb](./Hadoop-Local-Cluster-Class.ipynb)
+**Notebook:** [Hadoop-Local-Cluster-Guide.ipynb](./Hadoop-Local-Cluster-Guide.ipynb)
 
-E-commerce scenario (**ShopStream**), demos for all 7 containers, MapReduce on product reviews, AWS mapping. Sample data in `data/ecommerce/`.
+ShopStream e-commerce walkthrough — all 7 containers, HDFS uploads, MapReduce on reviews, AWS mapping. Sample data in `data/ecommerce/`.
 
 ## Quick start
 
@@ -56,14 +56,14 @@ docker compose down           # stop
 docker compose down -v        # stop + wipe HDFS
 ```
 
-## Run the class notebook
+## Run the guide notebook
 
 ```bash
 cd hadoop-local-docker
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements-notebook.txt
-jupyter notebook Hadoop-Local-Cluster-Class.ipynb
+jupyter notebook Hadoop-Local-Cluster-Guide.ipynb
 ```
 
 Ensure the Hadoop cluster is running first (`docker compose up -d` — see [HADOOP-STUDENT-GUIDE.md](./HADOOP-STUDENT-GUIDE.md)).
