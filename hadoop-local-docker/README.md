@@ -8,27 +8,24 @@ Multi-node **Hadoop 3.3.6** cluster for local development and student labs.
 
 Step-by-step setup for Mac, Windows, and Linux — prerequisites, start, verify, HDFS commands, MapReduce exercises, troubleshooting.
 
+## Class notebook (instructors)
+
+**1-hour teaching notebook:** [Hadoop-Local-Cluster-Class.ipynb](./Hadoop-Local-Cluster-Class.ipynb)
+
+E-commerce scenario (**ShopStream**), demos for all 7 containers, MapReduce on product reviews, AWS mapping. Sample data in `data/ecommerce/`.
+
 ## Quick start
 
 ```bash
 git clone https://github.com/manangupta12/aws-data-engineering-course.git
 cd aws-data-engineering-course/hadoop-local-docker
-chmod +x scripts/*.sh      # Mac / Linux / WSL only
-./scripts/start.sh
-./scripts/verify.sh
-./scripts/smoke-test.sh
+
+docker pull neshkeev/hadoop:3.3.6-jdk-11
+docker compose up -d
+docker compose ps
 ```
 
-Windows (PowerShell):
-
-```powershell
-git clone https://github.com/manangupta12/aws-data-engineering-course.git
-cd aws-data-engineering-course\hadoop-local-docker
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned   # first time only
-.\scripts\start.ps1
-.\scripts\verify.ps1
-.\scripts\smoke-test.ps1
-```
+Full commands with explanations: [HADOOP-STUDENT-GUIDE.md](./HADOOP-STUDENT-GUIDE.md)
 
 ## Web UIs
 
@@ -55,8 +52,18 @@ Image: [neshkeev/hadoop:3.3.6-jdk-11](https://hub.docker.com/r/neshkeev/hadoop) 
 ## Stop / reset
 
 ```bash
-./scripts/stop.sh           # stop, keep data
-docker compose down -v      # stop + wipe HDFS
+docker compose down           # stop
+docker compose down -v        # stop + wipe HDFS
 ```
 
-Windows: `.\scripts\stop.ps1`
+## Run the class notebook
+
+```bash
+cd hadoop-local-docker
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements-notebook.txt
+jupyter notebook Hadoop-Local-Cluster-Class.ipynb
+```
+
+Ensure the Hadoop cluster is running first (`docker compose up -d` — see [HADOOP-STUDENT-GUIDE.md](./HADOOP-STUDENT-GUIDE.md)).

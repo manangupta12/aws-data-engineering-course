@@ -60,16 +60,17 @@ flowchart TB
 
 ---
 
-## Choose your setup path
+## Choose your terminal
 
-| OS | Recommended terminal | Start script |
-|----|----------------------|--------------|
-| macOS | Terminal (zsh/bash) | `./scripts/start.sh` |
-| Linux | Terminal (bash) | `./scripts/start.sh` |
-| Windows | **PowerShell** | `.\scripts\start.ps1` |
-| Windows (alt) | **Git Bash** or **WSL 2 Ubuntu** | `./scripts/start.sh` |
+| OS | Recommended terminal |
+|----|----------------------|
+| macOS | Terminal (zsh/bash) |
+| Linux | Terminal (bash) |
+| Windows | **PowerShell**, **Git Bash**, or **WSL 2 Ubuntu** |
 
-> **Windows students:** Use **PowerShell** for `.ps1` scripts, or **Git Bash / WSL** for `.sh` scripts. Do not use old `cmd.exe` — it cannot run these scripts.
+> **Windows students:** Do not use old `cmd.exe`. Use PowerShell or Git Bash/WSL for the commands below.
+
+> All commands below assume your current directory is `hadoop-local-docker/`.
 
 ## Before you start — checklist
 
@@ -172,122 +173,253 @@ You should see:
 
 ```
 hadoop-local-docker/
-├── docker-compose.yml      # Cluster definition
-├── data/sample.txt         # Sample file for labs
-├── scripts/
-│   ├── lib.sh / lib.ps1    # Shared helpers
-│   ├── start.sh            # Mac / Linux / Git Bash / WSL
-│   ├── stop.sh
-│   ├── smoke-test.sh
-│   ├── verify.sh
-│   ├── start.ps1           # Windows PowerShell
-│   ├── stop.ps1
-│   ├── smoke-test.ps1
-│   └── verify.ps1
-├── HADOOP-STUDENT-GUIDE.md # This file
+├── docker-compose.yml           # Defines all 7 cluster containers
+├── data/
+│   ├── sample.txt               # Sample file for smoke test
+│   └── ecommerce/               # E-commerce demo data (class notebook)
+├── HADOOP-STUDENT-GUIDE.md      # This file
+├── Hadoop-Local-Cluster-Class.ipynb
 └── README.md
 ```
 
-> All commands below assume your current directory is `hadoop-local-docker/`.
+> Optional helper scripts exist in `scripts/` (`start.sh`, `verify.sh`, etc.). This guide uses **explicit commands** so you understand each step.
 
 ---
 
-## Step 3 — Start the cluster
+## Step 3 — Start the cluster (run commands in order)
 
-### Mac / Linux / Git Bash (Windows)
+Move into the project folder:
 
 ```bash
-chmod +x scripts/*.sh
-./scripts/start.sh
+cd aws-data-engineering-course/hadoop-local-docker
 ```
 
-First run downloads the Hadoop image (~1.2 GB). This can take 5–15 minutes depending on your network.
-
-### Windows (PowerShell)
-
-If PowerShell blocks scripts, run once:
+Windows (PowerShell):
 
 ```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+cd aws-data-engineering-course\hadoop-local-docker
 ```
 
-Then start the cluster:
+Run each command below **in sequence**. Read the *What it does* column before running the next one.
 
-```powershell
-.\scripts\start.ps1
-```
-
-The start script pulls the image, starts containers, and waits until all 7 services are healthy (may take 2–3 minutes after the image download).
-
-### Manual start (all platforms)
-
-If scripts fail, run directly:
+### 3.1 — Download the Hadoop Docker image
 
 ```bash
 docker pull neshkeev/hadoop:3.3.6-jdk-11
+```
+
+| What it does |
+|--------------|
+| Downloads the pre-built Hadoop 3.3.6 image (~1.2 GB). First run can take 5–15 minutes. Same image is reused by all 7 containers. Supports Intel and Apple Silicon. |
+
+### 3.2 — Start all cluster containers in the background
+
+```bash
 docker compose up -d
 ```
 
----
+| What it does |
+|--------------|
+| Reads `docker-compose.yml` and starts 7 containers: `namenode`, `worker-1`, `worker-2`, `worker-3`, `resourcemanager`, `historyserver`, `proxyserver`. The `-d` flag runs them in the background (detached). |
 
-## Step 4 — Verify the cluster is healthy
-
-Run the verify script:
-
-```bash
-./scripts/verify.sh
-```
-
-Windows:
-
-```powershell
-.\scripts\verify.ps1
-```
-
-Or check manually:
+### 3.3 — Check container status
 
 ```bash
 docker compose ps
 ```
 
-**Expected:** All 7 containers show `(healthy)`:
+| What it does |
+|--------------|
+| Lists every container, its state (`Up` / `Exit`), and port mappings. Right after start, status may show `starting` before `healthy`. |
+
+**Expected (after 1–3 minutes):** All 7 rows show `(healthy)`.
+
+### 3.4 — Wait until every service is healthy
+
+Re-run until all seven show `healthy`:
+
+```bash
+docker inspect --format='{{.Name}} {{.State.Health.Status}}' namenode resourcemanager historyserver proxyserver worker-1 worker-2 worker-3
+```
+
+| What it does |
+|--------------|
+| Queries Docker health checks for each container. Hadoop services need time to register DataNodes and YARN nodes before jobs will work. |
+
+**Expected output:**
 
 ```
-namenode          ... Up ... (healthy)   0.0.0.0:9870->9870/tcp, 0.0.0.0:9900->9000/tcp
-resourcemanager   ... Up ... (healthy)   0.0.0.0:8088->8088/tcp
-historyserver     ... Up ... (healthy)   0.0.0.0:19888->19888/tcp
-proxyserver       ... Up ... (healthy)   0.0.0.0:9099->9099/tcp
-worker-1          ... Up ... (healthy)
-worker-2          ... Up ... (healthy)
-worker-3          ... Up ... (healthy)
+/namenode healthy
+/resourcemanager healthy
+/historyserver healthy
+/proxyserver healthy
+/worker-1 healthy
+/worker-2 healthy
+/worker-3 healthy
 ```
 
-Open in browser:
+If any container is not `healthy` after 3 minutes, wait 30 seconds and re-run the command. See [Troubleshooting](#container-not-healthy).
 
-| URL | What to look for |
-|-----|------------------|
-| http://localhost:9870 | NameNode UI — **Live Nodes: 3** |
-| http://localhost:8088 | YARN — **Nodes: 3**, **Active Nodes: 3** |
+### 3.5 — Confirm web UIs are reachable
 
-If a container is not healthy yet, wait 30 seconds and run `docker compose ps` again.
+Open in your browser:
+
+| URL | What it does |
+|-----|--------------|
+| http://localhost:9870 | **NameNode UI** — HDFS dashboard; confirm **Live Nodes: 3** |
+| http://localhost:8088 | **YARN UI** — cluster scheduler; confirm **Active Nodes: 3** |
+| http://localhost:19888 | **History Server** — finished MapReduce job logs |
+
+Optional CLI check (Mac/Linux/Git Bash):
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:9870
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8088
+```
+
+| What it does |
+|--------------|
+| Prints `200` if the web UI is responding. On Windows, use the browser URLs instead. |
 
 ---
 
-## Step 5 — Run the smoke test
+## Step 4 — Verify the cluster is healthy
 
-This uploads a sample file to HDFS and runs the built-in **wordcount** MapReduce job.
+Run these commands in order.
 
-### Mac / Linux / Git Bash
+### 4.1 — List containers and ports
 
 ```bash
-./scripts/smoke-test.sh
+docker compose ps
 ```
 
-### Windows (PowerShell)
+| What it does |
+|--------------|
+| Shows whether each service is `Up` and which host ports map to container ports (e.g. `9870` → NameNode UI). |
+
+### 4.2 — Check health of each container
+
+```bash
+docker inspect --format='{{.Name}} {{.State.Health.Status}}' namenode resourcemanager historyserver proxyserver worker-1 worker-2 worker-3
+```
+
+| What it does |
+|--------------|
+| Confirms Docker health probes passed for HDFS, YARN, and worker nodes. All must be `healthy` before running HDFS or MapReduce commands. |
+
+### 4.3 — Confirm YARN sees 3 worker nodes
+
+```bash
+docker exec resourcemanager yarn node -list
+```
+
+| What it does |
+|--------------|
+| Asks the YARN ResourceManager how many NodeManagers registered. Expect **3** nodes (`worker-1`, `worker-2`, `worker-3`). |
+
+### 4.4 — Confirm HDFS sees live DataNodes
+
+Open http://localhost:9870 → **Datanodes** tab.
+
+| What to look for |
+|------------------|
+| **Live Nodes: 3** — means all three workers registered their storage with the NameNode. |
+
+**Expected:** All 7 containers `(healthy)` in Step 4.2, 3 YARN nodes in Step 4.3, 3 live DataNodes in Step 4.4.
+
+---
+
+## Step 5 — Smoke test (HDFS + MapReduce)
+
+Run each command in order. This proves storage (HDFS) and batch processing (MapReduce via YARN) work end-to-end.
+
+### 5.1 — Create an HDFS input directory
+
+```bash
+docker exec namenode hdfs dfs -mkdir -p /user/root/input
+```
+
+| What it does |
+|--------------|
+| Creates a folder in HDFS (like creating a prefix/folder in S3). The NameNode records the path; data will live on worker DataNodes. |
+
+### 5.2 — Copy sample file from laptop into the NameNode container
+
+Mac / Linux / Git Bash / WSL:
+
+```bash
+docker cp ./data/sample.txt namenode:/tmp/sample.txt
+```
+
+Windows (PowerShell):
 
 ```powershell
-.\scripts\smoke-test.ps1
+docker cp .\data\sample.txt namenode:/tmp/sample.txt
 ```
+
+| What it does |
+|--------------|
+| Copies a local file into the `namenode` container filesystem at `/tmp/`. Required because `hdfs put` reads from inside the container. |
+
+### 5.3 — Upload the file into HDFS
+
+```bash
+docker exec namenode hdfs dfs -put -f /tmp/sample.txt /user/root/input/sample.txt
+```
+
+| What it does |
+|--------------|
+| Stores the file in HDFS at `/user/root/input/sample.txt`. HDFS splits it into blocks and replicates across worker DataNodes. `-f` overwrites if the file already exists. |
+
+### 5.4 — List and read the file from HDFS
+
+```bash
+docker exec namenode hdfs dfs -ls /user/root/input
+docker exec namenode hdfs dfs -cat /user/root/input/sample.txt
+```
+
+| What it does |
+|--------------|
+| `ls` — lists files and replication info. `cat` — prints file contents from HDFS to your terminal. |
+
+### 5.5 — Remove old output (safe to re-run)
+
+```bash
+docker exec namenode hdfs dfs -rm -r -f /user/root/output/wordcount
+```
+
+| What it does |
+|--------------|
+| Deletes previous MapReduce output so the next job does not fail with "output directory already exists". |
+
+### 5.6 — Submit the wordcount MapReduce job
+
+Mac / Linux / Git Bash / WSL:
+
+```bash
+docker exec namenode bash -lc \
+  'hadoop jar $(ls $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar | head -1) wordcount /user/root/input/sample.txt /user/root/output/wordcount'
+```
+
+Windows (PowerShell):
+
+```powershell
+docker exec namenode bash -lc "hadoop jar `$(ls `$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar | head -1) wordcount /user/root/input/sample.txt /user/root/output/wordcount"
+```
+
+| What it does |
+|--------------|
+| Submits a batch job to YARN. **Map** tasks count words in each line; **Reduce** tasks sum counts. Output is written to `/user/root/output/wordcount/` in HDFS. Watch progress at http://localhost:8088/cluster/apps |
+
+### 5.7 — Read the job result
+
+```bash
+docker exec namenode hdfs dfs -cat /user/root/output/wordcount/part-r-00000
+```
+
+| What it does |
+|--------------|
+| Prints the reduce output — one line per word with its count. |
 
 **Expected output (last lines):**
 
@@ -299,11 +431,9 @@ hdfs       1
 hello      3
 local      1
 mapreduce  1
-
-Smoke test passed.
 ```
 
-If you see this, your cluster is working.
+If you see word counts like above, your cluster is fully working.
 
 ---
 
@@ -434,33 +564,29 @@ docker exec resourcemanager yarn application -kill application_XXXXXXXXX_XXXX
 
 ## Stop and reset
 
-### Stop cluster (keep HDFS data)
-
-**Mac / Linux / Git Bash:**
-
-```bash
-./scripts/stop.sh
-```
-
-**Windows:**
-
-```powershell
-.\scripts\stop.ps1
-```
-
-Or:
+### Stop cluster (keep container data)
 
 ```bash
 docker compose down
 ```
 
-### Full reset (delete all HDFS data)
+| What it does |
+|--------------|
+| Stops and removes all 7 containers and the Docker network. Container filesystem data is removed, but named volumes (if any) persist. Our cluster stores HDFS data inside containers, so a full reset needs the command below. |
+
+### Full reset (fresh cluster)
 
 ```bash
 docker compose down -v
 ```
 
-Use this when you want a completely fresh cluster.
+| What it does |
+|--------------|
+| Same as `down`, plus removes Docker volumes (`-v`). Use when you want a completely clean HDFS state. |
+
+### Start again later
+
+Repeat [Step 3](#step-3--start-the-cluster-run-commands-in-order) from `docker compose up -d`.
 
 ---
 
@@ -530,21 +656,11 @@ Unable to load native-hadoop library for your platform... using builtin-java cla
 
 This is **normal** in Docker. Jobs still run correctly.
 
-### Windows: scripts won't run
+### Windows: command issues
 
-**PowerShell blocked (.ps1):**
-
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-Then retry `.\scripts\start.ps1`.
-
-**Other options:**
-
-- Use **Git Bash** or **WSL 2** for `.sh` scripts
-- Run `docker compose` commands directly (see Step 3 manual start)
-- Ensure **Docker Desktop** is running and WSL integration is enabled (Settings → Resources → WSL integration)
+- Use **PowerShell** or **Git Bash** — not `cmd.exe`
+- For `docker cp`, use `.\data\sample.txt` on Windows paths
+- Ensure **Docker Desktop** is running with WSL integration enabled (Settings → Resources → WSL integration)
 
 ### Linux: permission denied on `docker`
 
@@ -569,17 +685,18 @@ Or log out and back in, then retry.
 
 ## Quick reference
 
-| Task | Command |
-|------|---------|
-| Start | `./scripts/start.sh` or `.\scripts\start.ps1` |
-| Verify | `./scripts/verify.sh` or `.\scripts\verify.ps1` |
-| Status | `docker compose ps` |
-| Smoke test | `./scripts/smoke-test.sh` or `.\scripts\smoke-test.ps1` |
-| HDFS shell | `docker exec -it namenode bash` |
-| Stop | `./scripts/stop.sh` or `docker compose down` |
-| Fresh reset | `docker compose down -v` |
-| NameNode UI | http://localhost:9870 |
-| YARN UI | http://localhost:8088 |
+| Step | Command | Purpose |
+|------|---------|---------|
+| Pull image | `docker pull neshkeev/hadoop:3.3.6-jdk-11` | Download Hadoop image |
+| Start | `docker compose up -d` | Start 7 containers |
+| Status | `docker compose ps` | List container state |
+| Health | `docker inspect --format='{{.Name}} {{.State.Health.Status}}' namenode resourcemanager historyserver proxyserver worker-1 worker-2 worker-3` | Check all services |
+| YARN nodes | `docker exec resourcemanager yarn node -list` | Confirm 3 workers |
+| HDFS shell | `docker exec -it namenode bash` | Interactive Hadoop shell |
+| Stop | `docker compose down` | Stop cluster |
+| Fresh reset | `docker compose down -v` | Stop + remove volumes |
+| NameNode UI | http://localhost:9870 | HDFS dashboard |
+| YARN UI | http://localhost:8088 | Job scheduler dashboard |
 
 ---
 
