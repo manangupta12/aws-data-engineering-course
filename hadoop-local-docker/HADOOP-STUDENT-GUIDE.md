@@ -700,6 +700,98 @@ Or log out and back in, then retry.
 
 ---
 
+## Class notebook — 1-hour guided lab
+
+**File:** [`Hadoop-Local-Cluster-Class.ipynb`](./Hadoop-Local-Cluster-Class.ipynb)
+
+Instructor-led Jupyter notebook for a **60-minute live class**. Walks through every container with a fictional e-commerce company called **ShopStream** (orders, reviews, clickstream).
+
+> **Students:** Complete [Steps 1–5](#step-1--install-docker) first so the cluster is running before opening the notebook.
+
+### What the notebook covers
+
+| Topic | Containers / services | E-commerce example |
+|-------|----------------------|-------------------|
+| Why Hadoop | Architecture overview | Store & batch-process millions of orders overnight |
+| Health check | All 7 containers | Verify "data center" is online before jobs |
+| HDFS storage | `namenode`, `worker-1/2/3` | Upload `orders.csv`, `product_reviews.txt`, `clickstream.csv` to `/shopstream/raw/` |
+| YARN scheduling | `resourcemanager`, workers | Shift manager assigns batch jobs to analyst desks |
+| MapReduce | YARN + HDFS | Word count on product reviews; grep for "delivery" complaints |
+| Job audit | `historyserver`, `proxyserver` | Review finished job logs & app tracking URLs |
+| AWS mapping | — | HDFS → S3, YARN+MR → EMR |
+
+### Class agenda (60 min)
+
+| Time | Topic | Demo |
+|------|-------|------|
+| 0–8 min | Why Hadoop for e-commerce | ShopStream story + architecture diagram |
+| 8–12 min | Cluster health check | `docker compose ps`, all 7 healthy |
+| 12–22 min | HDFS — NameNode + DataNodes | Upload e-commerce files to HDFS |
+| 22–32 min | YARN — ResourceManager + workers | `yarn node -list`, YARN UI :8088 |
+| 32–45 min | MapReduce | Wordcount on reviews, grep demo |
+| 45–52 min | History + Proxy servers | :19888 job logs, :9099 proxy |
+| 52–60 min | Batch pipeline + AWS | Nightly ETL diagram, S3/EMR comparison |
+
+### Sample data (ShopStream)
+
+| File | Path | Used for |
+|------|------|----------|
+| Orders | `data/ecommerce/orders.csv` | HDFS upload demo — 15 sample orders |
+| Reviews | `data/ecommerce/product_reviews.txt` | MapReduce wordcount |
+| Clickstream | `data/ecommerce/clickstream.csv` | HDFS upload — page views, cart, checkout events |
+
+HDFS paths created in the notebook:
+
+```
+/shopstream/raw/orders/
+/shopstream/raw/reviews/
+/shopstream/raw/clickstream/
+/shopstream/processed/          ← MapReduce output
+```
+
+### Run the notebook
+
+**Prerequisite:** Cluster healthy ([Step 3](#step-3--start-the-cluster-run-commands-in-order) + [Step 4](#step-4--verify-the-cluster-is-healthy)).
+
+**1. Install Jupyter (one time):**
+
+```bash
+cd aws-data-engineering-course/hadoop-local-docker
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements-notebook.txt
+```
+
+**2. Open browser tabs before class:**
+
+| UI | URL |
+|----|-----|
+| NameNode | http://localhost:9870 |
+| YARN | http://localhost:8088 |
+| History Server | http://localhost:19888 |
+
+**3. Start Jupyter:**
+
+```bash
+jupyter notebook Hadoop-Local-Cluster-Class.ipynb
+```
+
+Windows (PowerShell) — same commands after activating `.venv`.
+
+**4. Run cells top to bottom** during class. Markdown cells = teach; code cells = live demo (`!docker exec ...`).
+
+### Container quick map (teaching cheat sheet)
+
+| Container | Role | Port | ShopStream analogy |
+|-----------|------|------|-------------------|
+| `namenode` | HDFS catalog | 9870, 9900 | Inventory catalog desk |
+| `worker-1/2/3` | DataNode + NodeManager | 18042/28042/38042 | Warehouse racks + analyst desks |
+| `resourcemanager` | YARN scheduler | 8088 | Shift manager |
+| `historyserver` | Job history | 19888 | Completed shift reports |
+| `proxyserver` | App proxy | 9099 | Reception / job gateway |
+
+---
+
 ## What you learned
 
 - Run Hadoop locally without installing Java or Hadoop manually
@@ -712,6 +804,7 @@ Or log out and back in, then retry.
 
 ## Next steps
 
+- Walk through the [**1-hour class notebook**](./Hadoop-Local-Cluster-Class.ipynb) with the ShopStream e-commerce demos
 - Upload your own CSV/JSON to HDFS and run wordcount on it
 - Explore other examples in `$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar`
 - Compare HDFS concepts to S3 when you work on AWS labs in this repo
