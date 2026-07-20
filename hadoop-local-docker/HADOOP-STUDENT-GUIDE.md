@@ -648,6 +648,38 @@ docker compose restart worker-1 worker-2 worker-3
 docker compose ps
 ```
 
+### YARN links use `proxyserver` or `worker-2` — browser can't reach them
+
+**Symptom:** Job tracking URL shows `http://proxyserver:9099/...` or `http://worker-2:28042/` and fails in browser.
+
+**Cause:** Those are Docker **internal** hostnames. Your browser runs on the host, not inside the Docker network.
+
+**Fix:** Replace hostname with `localhost` and use mapped ports:
+
+| Broken URL | Use instead |
+|------------|-------------|
+| `http://proxyserver:9099/proxy/application_XXXX/` | `http://localhost:9099/proxy/application_XXXX/` |
+| `http://worker-1:18042/` | `http://localhost:18042/` |
+| `http://worker-2:28042/` | `http://localhost:28042/` |
+| `http://worker-3:38042/` | `http://localhost:38042/` |
+| `http://historyserver:19888/...` | `http://localhost:19888/...` |
+| `http://resourcemanager:8088/...` | `http://localhost:8088/...` |
+
+Current `docker-compose.yml` advertises `localhost` for new jobs after recreate. If links still show internal names, run:
+
+```bash
+docker compose up -d --force-recreate resourcemanager proxyserver historyserver worker-1 worker-2 worker-3
+```
+
+**Verify proxy is running:**
+
+```bash
+curl -I http://localhost:9099/
+curl -I http://localhost:28042/
+```
+
+Both should return `HTTP/1.1 302` or `200`.
+
 ### `NativeCodeLoader` warning
 
 ```
@@ -705,6 +737,25 @@ Or log out and back in, then retry.
 **File:** [`Hadoop-Local-Cluster-Guide.ipynb`](./Hadoop-Local-Cluster-Guide.ipynb)
 
 Step-by-step notebook that walks through the local Hadoop cluster using the **ShopStream** e-commerce example (orders, reviews, clickstream). Run each cell in order after the cluster is up.
+
+## MapReduce module (build your own jobs)
+
+**Start here:** [MAPREDUCE-STUDENT-GUIDE.md](./MAPREDUCE-STUDENT-GUIDE.md)
+
+Step-by-step guide for writing Python MapReduce jobs with Hadoop Streaming — local testing, cluster deployment, and job monitoring.
+
+| Resource | Path |
+|----------|------|
+| Written guide | [MAPREDUCE-STUDENT-GUIDE.md](./MAPREDUCE-STUDENT-GUIDE.md) |
+| Student notebook | [Hadoop-MapReduce-Guide.ipynb](./Hadoop-MapReduce-Guide.ipynb) |
+| Module code | [mapreduce/](./mapreduce/) |
+
+```bash
+cd hadoop-local-docker
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-notebook.txt
+jupyter notebook Hadoop-MapReduce-Guide.ipynb
+```
 
 ### What the guide covers
 
@@ -770,7 +821,8 @@ Keep these UIs open while working through the notebook:
 
 ## Next steps
 
-- Work through the [**hands-on guide notebook**](./Hadoop-Local-Cluster-Guide.ipynb) with the ShopStream e-commerce examples
+- Work through the [**cluster guide notebook**](./Hadoop-Local-Cluster-Guide.ipynb) with the ShopStream e-commerce examples
+- Build your own jobs with the [**MapReduce module**](./MAPREDUCE-STUDENT-GUIDE.md) and [Hadoop-MapReduce-Guide.ipynb](./Hadoop-MapReduce-Guide.ipynb)
 - Upload your own CSV/JSON to HDFS and run wordcount on it
 - Explore other examples in `$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar`
 - Compare HDFS concepts to S3 when you work on AWS labs in this repo

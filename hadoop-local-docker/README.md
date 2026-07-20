@@ -10,9 +10,13 @@ Step-by-step setup for Mac, Windows, and Linux — prerequisites, start, verify,
 
 ## Hands-on guide (Jupyter)
 
-**Notebook:** [Hadoop-Local-Cluster-Guide.ipynb](./Hadoop-Local-Cluster-Guide.ipynb)
+**Cluster tour:** [Hadoop-Local-Cluster-Guide.ipynb](./Hadoop-Local-Cluster-Guide.ipynb)
 
-ShopStream e-commerce walkthrough — all 7 containers, HDFS uploads, MapReduce on reviews, AWS mapping. Sample data in `data/ecommerce/`.
+ShopStream e-commerce walkthrough — all 7 containers, HDFS uploads, built-in MapReduce examples, AWS mapping. Sample data in `data/ecommerce/`.
+
+**MapReduce module:** [MAPREDUCE-STUDENT-GUIDE.md](./MAPREDUCE-STUDENT-GUIDE.md) · [Hadoop-MapReduce-Guide.ipynb](./Hadoop-MapReduce-Guide.ipynb)
+
+Write and deploy your own Python MapReduce jobs with Hadoop Streaming. Code in `mapreduce/`.
 
 ## Quick start
 
@@ -67,3 +71,9 @@ jupyter notebook Hadoop-Local-Cluster-Guide.ipynb
 ```
 
 Ensure the Hadoop cluster is running first (`docker compose up -d` — see [HADOOP-STUDENT-GUIDE.md](./HADOOP-STUDENT-GUIDE.md)).
+
+For MapReduce job development:
+
+```bash
+jupyter notebook Hadoop-MapReduce-Guide.ipynb
+```
