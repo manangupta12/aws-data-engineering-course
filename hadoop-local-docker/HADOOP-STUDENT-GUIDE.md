@@ -680,7 +680,27 @@ curl -I http://localhost:28042/
 
 Both should return `HTTP/1.1 302` or `200`.
 
-### `NativeCodeLoader` warning
+### NameNode UI file preview fails (WebHDFS / `worker-3:39864`)
+
+**Symptom:** Preview/download errors with `NetworkError` and URL like `http://worker-3:39864/webhdfs/v1/...`
+
+**Cause:** Browser loads file bytes from DataNode HTTP port. Docker-internal hostnames (`worker-3`, `namenode`) are not resolvable on your laptop.
+
+**Fix (built into `docker-compose.yml`):** DataNodes advertise `dfs.datanode.hostname: localhost` for WebHDFS redirects, while internal HDFS traffic still uses container IPs (`dfs.client.use.datanode.hostname: false`). After pulling latest compose:
+
+```bash
+docker compose up -d --force-recreate namenode worker-1 worker-2 worker-3
+```
+
+Preview redirect should look like `http://localhost:39864/webhdfs/v1/...` (port differs per worker: `19864`, `29864`, `39864`).
+
+**No sudo / no `/etc/hosts` edits required.**
+
+**Workaround:** CLI read:
+
+```bash
+docker exec namenode hdfs dfs -cat /shopstream/processed/review_sentiment/part-00000
+```
 
 ```
 Unable to load native-hadoop library for your platform... using builtin-java classes

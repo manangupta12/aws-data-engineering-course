@@ -17,22 +17,26 @@ x-template: &template
     HDFS-SITE.XML_dfs.replication: 2
     HDFS-SITE.XML_dfs.permissions: false
     HDFS-SITE.XML_dfs.namenode.datanode.registration.ip-hostname-check: false
+    HDFS-SITE.XML_dfs.webhdfs.enabled: true
+    HDFS-SITE.XML_dfs.datanode.hostname: localhost
+    HDFS-SITE.XML_dfs.client.use.datanode.hostname: false
+    HDFS-SITE.XML_dfs.datanode.use.datanode.hostname: false
 
     MAPRED-SITE.XML_mapreduce.framework.name: yarn
     MAPRED-SITE.XML_mapreduce.application.classpath: $$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*:$$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*
 
     MAPRED-SITE.XML_mapreduce.jobhistory.address: historyserver:10020
-    MAPRED-SITE.XML_mapreduce.jobhistory.webapp.address: historyserver:19888
+    MAPRED-SITE.XML_mapreduce.jobhistory.webapp.address: localhost:19888
     MAPRED-SITE.XML_mapreduce.jobhistory.bind-host: 0.0.0.0
 
     YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
-    YARN-SITE.XML_yarn.resourcemanager.webapp.address: resourcemanager:8088
+    YARN-SITE.XML_yarn.resourcemanager.webapp.address: localhost:8088
     YARN-SITE.XML_yarn.resourcemanager.bind-host: 0.0.0.0
 
     YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
     YARN-SITE.XML_yarn.nodemanager.env-whitelist: JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_DISTCACHE,HADOOP_YARN_HOME,HADOOP_HOME,PATH,LANG,TZ,HADOOP_MAPRED_HOME
 
-    YARN-SITE.XML_yarn.web-proxy.address: proxyserver:9099
+    YARN-SITE.XML_yarn.web-proxy.address: localhost:9099
     YARN-SITE.XML_yarn.web-proxy.bind-host: 0.0.0.0
 
 services:
@@ -120,7 +124,7 @@ services:
       <<: *env
       HDFS-SITE.XML_dfs.datanode.http.address: 0.0.0.0:19864
       HDFS-SITE.XML_dfs.datanode.address: 0.0.0.0:19866
-      YARN-SITE.XML_yarn.nodemanager.webapp.address: $${yarn.nodemanager.hostname}:18042
+      YARN-SITE.XML_yarn.nodemanager.webapp.address: localhost:18042
 
   worker-2:
     <<: *worker
@@ -136,7 +140,7 @@ services:
       <<: *env
       HDFS-SITE.XML_dfs.datanode.http.address: 0.0.0.0:29864
       HDFS-SITE.XML_dfs.datanode.address: 0.0.0.0:29866
-      YARN-SITE.XML_yarn.nodemanager.webapp.address: $${yarn.nodemanager.hostname}:28042
+      YARN-SITE.XML_yarn.nodemanager.webapp.address: localhost:28042
 
   worker-3:
     <<: *worker
@@ -152,4 +156,4 @@ services:
       <<: *env
       HDFS-SITE.XML_dfs.datanode.http.address: 0.0.0.0:39864
       HDFS-SITE.XML_dfs.datanode.address: 0.0.0.0:39866
-      YARN-SITE.XML_yarn.nodemanager.webapp.address: $${yarn.nodemanager.hostname}:38042
+      YARN-SITE.XML_yarn.nodemanager.webapp.address: localhost:38042
