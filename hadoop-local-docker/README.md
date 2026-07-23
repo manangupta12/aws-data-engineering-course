@@ -18,6 +18,10 @@ ShopStream e-commerce walkthrough — all 7 containers, HDFS uploads, built-in M
 
 Write and deploy your own Python MapReduce jobs with Hadoop Streaming. Code in `mapreduce/`.
 
+**Spark pivot module:** [spark/SPARK-STUDENT-GUIDE.md](./spark/SPARK-STUDENT-GUIDE.md) · [spark/Spark-Pivot-Guide.ipynb](./spark/Spark-Pivot-Guide.ipynb)
+
+MapReduce pain points → PySpark local mode. Code in `spark/`.
+
 ## Quick start
 
 ```bash
@@ -76,4 +80,12 @@ For MapReduce job development:
 
 ```bash
 jupyter notebook Hadoop-MapReduce-Guide.ipynb
+```
+
+For the Hadoop → Spark pivot lab:
+
+```bash
+cd spark
+pip install -r requirements-spark.txt
+jupyter notebook Spark-Pivot-Guide.ipynb
 ```

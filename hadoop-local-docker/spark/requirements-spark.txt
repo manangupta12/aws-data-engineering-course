@@ -1,0 +1,4 @@
+jupyter
+notebook
+ipykernel
+pyspark>=3.5,<4

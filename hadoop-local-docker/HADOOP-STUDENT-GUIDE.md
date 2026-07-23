@@ -777,6 +777,25 @@ pip install -r requirements-notebook.txt
 jupyter notebook Hadoop-MapReduce-Guide.ipynb
 ```
 
+## Spark pivot module (Hadoop limits → PySpark)
+
+**Start here:** [spark/SPARK-STUDENT-GUIDE.md](./spark/SPARK-STUDENT-GUIDE.md)
+
+Uses MapReduce friction as motivation, then solves the same ShopStream analytics with PySpark local mode.
+
+| Resource | Path |
+|----------|------|
+| Written guide | [spark/SPARK-STUDENT-GUIDE.md](./spark/SPARK-STUDENT-GUIDE.md) |
+| Student notebook | [spark/Spark-Pivot-Guide.ipynb](./spark/Spark-Pivot-Guide.ipynb) |
+| Module code | [spark/](./spark/) |
+
+```bash
+cd hadoop-local-docker/spark
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-spark.txt
+jupyter notebook Spark-Pivot-Guide.ipynb
+```
+
 ### What the guide covers
 
 | Section | Topic | Services |
@@ -843,6 +862,7 @@ Keep these UIs open while working through the notebook:
 
 - Work through the [**cluster guide notebook**](./Hadoop-Local-Cluster-Guide.ipynb) with the ShopStream e-commerce examples
 - Build your own jobs with the [**MapReduce module**](./MAPREDUCE-STUDENT-GUIDE.md) and [Hadoop-MapReduce-Guide.ipynb](./Hadoop-MapReduce-Guide.ipynb)
+- Pivot to Spark with the [**Spark module**](./spark/SPARK-STUDENT-GUIDE.md) and [Spark-Pivot-Guide.ipynb](./spark/Spark-Pivot-Guide.ipynb)
 - Upload your own CSV/JSON to HDFS and run wordcount on it
 - Explore other examples in `$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar`
 - Compare HDFS concepts to S3 when you work on AWS labs in this repo
