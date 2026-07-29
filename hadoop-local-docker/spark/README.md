@@ -11,7 +11,8 @@ After MapReduce labs, students feel the friction: multiple jobs, HDFS temp paths
 | Path | Purpose |
 |------|---------|
 | [SPARK-STUDENT-GUIDE.md](./SPARK-STUDENT-GUIDE.md) | Step-by-step written guide |
-| [Spark-Pivot-Guide.ipynb](./Spark-Pivot-Guide.ipynb) | Hands-on notebook — run in order |
+| [PySpark-Capabilities-Guide.ipynb](./PySpark-Capabilities-Guide.ipynb) | **1-hour PySpark class** — capabilities + Pandas comparisons |
+| [Spark-Pivot-Guide.ipynb](./Spark-Pivot-Guide.ipynb) | MapReduce pain → Spark pivot lab |
 | `spark_helpers.py` | Local `SparkSession` + data paths |
 | `hadoop_pain_points.py` | MapReduce vs Spark comparison table |
 | `requirements-spark.txt` | PySpark + Jupyter dependencies |
@@ -29,7 +30,8 @@ cd hadoop-local-docker/spark
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements-spark.txt
-jupyter notebook Spark-Pivot-Guide.ipynb
+jupyter notebook PySpark-Capabilities-Guide.ipynb   # 1-hour PySpark class
+# or: jupyter notebook Spark-Pivot-Guide.ipynb      # MapReduce → Spark pivot
 ```
 
 Spark UI (while notebook runs): http://localhost:4040

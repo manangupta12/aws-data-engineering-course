@@ -4,7 +4,7 @@
 
 **Project folder:** `hadoop-local-docker/spark/`  
 **Prerequisite:** [HADOOP-STUDENT-GUIDE.md](../HADOOP-STUDENT-GUIDE.md) + [MAPREDUCE-STUDENT-GUIDE.md](../MAPREDUCE-STUDENT-GUIDE.md)  
-**Notebook:** [Spark-Pivot-Guide.ipynb](./Spark-Pivot-Guide.ipynb)
+**Notebook:** [PySpark-Capabilities-Guide.ipynb](./PySpark-Capabilities-Guide.ipynb) (1-hour class) · [Spark-Pivot-Guide.ipynb](./Spark-Pivot-Guide.ipynb) (MapReduce pivot)
 
 ---
 
